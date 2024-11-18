@@ -1,15 +1,15 @@
-import os
 import json
-os.environ["APIKEY"] = "AIzaSyAWc4RnU7PNF-msCnLU1pErp__-US7C5Vw"
 import streamlit as st
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import google.generativeai as genai
 
-# Configure the API key for Gemini AI
-genai.configure(api_key=os.environ["APIKEY"])  # Ensure you set your API key in the environment
+# Access the API key from Streamlit secrets
+api_key = st.secrets["APIKEY"]
 
+# Configure the API key for Gemini AI
+genai.configure(api_key=api_key)
 # Load the trained model (replace with the correct path to your model)
 # model = load_model(r'D:\1. LONEWALKER\1.1 CODES\FINAL YEAR PROJECTS REPO\1_Streamlit\Mymodel.h5')
 model = load_model('Mymodel.h5')
