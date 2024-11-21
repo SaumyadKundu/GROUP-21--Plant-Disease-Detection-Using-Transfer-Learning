@@ -27,7 +27,7 @@ with open(class_names_path, 'r') as f:
 
 
 # Streamlit app interface
-st.title('Plant Disease Detection')
+st.title('PhytoScan')
 
 # Upload image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
