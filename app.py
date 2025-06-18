@@ -24,47 +24,38 @@ with open(class_names_path, 'r') as f:
     class_names = json.load(f)
     
 #####################################
-def scrape_medicines_from_indiamart(disease_name, max_results=3):
+def scrape_medicines_from_bighaat(disease_name, max_results=3):
     import requests
     from bs4 import BeautifulSoup
 
-    query = f"{disease_name} fungicide site:indiamart.com"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    search_url = f"https://www.bighaat.com/search?q={disease_name}+fungicide"
+    headers = {"User-Agent": "Mozilla/5.0"}
 
-    search_url = f"https://www.google.com/search?q={query}"
     res = requests.get(search_url, headers=headers)
-
     if res.status_code != 200:
-        return [{"error": "Failed to fetch search results"}]
+        return [{"error": "Failed to fetch search results from BigHaat"}]
 
     soup = BeautifulSoup(res.text, "html.parser")
-
-    links = []
-    for a in soup.find_all("a"):
-        href = a.get("href")
-        if href and "indiamart.com" in href:
-            clean_url = href.split("&")[0].replace("/url?q=", "")
-            if clean_url not in links:
-                links.append(clean_url)
-        if len(links) >= max_results:
-            break
-
     results = []
-    for link in links:
-        try:
-            page = requests.get(link, headers=headers)
-            psoup = BeautifulSoup(page.text, "html.parser")
-            title = psoup.find("title").text.strip()
-            results.append({
-                "product": title,
-                "link": link
-            })
-        except:
-            continue
 
-    return results if results else [{"error": "No products found"}]
+    products = soup.find_all("div", class_="product-card", limit=max_results)
+    for product in products:
+        title_tag = product.find("a", class_="product-title")
+        link = "https://www.bighaat.com" + title_tag["href"] if title_tag else None
+        name = title_tag.text.strip() if title_tag else "Unknown Product"
+
+        image_tag = product.find("img")
+        image_url = image_tag["src"] if image_tag else None
+
+        if link and name:
+            results.append({
+                "product": name,
+                "link": link,
+                "image": image_url
+            })
+
+    return results if results else [{"error": "No medicines found on BigHaat"}]
+
 
 #################################
 
@@ -98,14 +89,18 @@ if uploaded_file is not None:
     response = model.generate_content(prompt)
 #############################
         # Scrape medicine links from IndiaMart
-    st.subheader("Suggested Medicines to Buy (India)")
-medicines = scrape_medicines_from_indiamart(predicted_class_name)
+    st.subheader("Suggested Medicines to Buy (via BigHaat)")
+medicines = scrape_medicines_from_bighaat(predicted_class_name)
 
 for med in medicines:
     if 'error' in med:
         st.write(med['error'])
     else:
-        st.markdown(f"🔹 **{med['product']}**  \n[🔗 View on IndiaMart]({med['link']})")
+        st.markdown(f"🔹 **{med['product']}**")
+        st.markdown(f"[🛒 Buy Now]({med['link']})")
+        if med['image']:
+            st.image(med['image'], width=200)
+
 
 #################################
     # Showing the generated description and prevention
