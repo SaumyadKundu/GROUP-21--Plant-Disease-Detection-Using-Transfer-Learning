@@ -105,8 +105,7 @@ for med in medicines:
     if 'error' in med:
         st.write(med['error'])
     else:
-        st.markdown(f"🔹 **{med['product']}**  
-        [🔗 View on IndiaMart]({med['link']})")
+        st.markdown(f"🔹 **{med['product']}**  \n[🔗 View on IndiaMart]({med['link']})")
 
 #################################
     # Showing the generated description and prevention
