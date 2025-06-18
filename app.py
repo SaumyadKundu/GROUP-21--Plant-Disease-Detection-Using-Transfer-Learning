@@ -4,6 +4,9 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import google.generativeai as genai
+import requests
+from bs4 import BeautifulSoup
+
 
 # Accessing the API key from Streamlit secrets
 api_key = st.secrets["APIKEY"]
@@ -19,7 +22,51 @@ model = load_model('Mymodel.h5')
 class_names_path = 'class_names.json'
 with open(class_names_path, 'r') as f:
     class_names = json.load(f)
+    
+#####################################
+def scrape_medicines_from_indiamart(disease_name, max_results=3):
+    query = f"{disease_name} fungicide site:indiamart.com"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
 
+    search_url = f"https://www.google.com/search?q={query}"
+    res = requests.get(search_url, headers=headers)
+
+    if res.status_code != 200:
+        return [{"error": "Failed to fetch search results"}]
+
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    links = []
+    for g in soup.find_all("a"):
+        href = g.get("href")
+        if href and "indiamart.com" in href:
+            clean_url = href.split("&")[0].replace("/url?q=", "")
+            if clean_url not in links:
+                links.append(clean_url)
+        if len(links) >= max_results:
+            break
+
+    results = []
+    for link in links:
+        try:
+            page = requests.get(link, headers=headers)
+            psoup = BeautifulSoup(page.text, "html.parser")
+            title = psoup.find("title").text.strip()
+            img_tag = psoup.find("img")
+            img_url = img_tag["src"] if img_tag else None
+
+            results.append({
+                "product": title,
+                "link": link,
+                "image": img_url
+            })
+        except Exception as e:
+            continue
+
+    return results if results else [{"error": "No products found"}]
+#################################
 
 # Streamlit app interface
 st.title('PhytoScan')
@@ -49,7 +96,20 @@ if uploaded_file is not None:
     prompt = f"Write a detailed description and prevention method for the disease {predicted_class_name} in plants. List medicines or treatments sold in India for {predicted_class_name} and include known websites or marketplaces if possible"
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
+#############################
+        # Scrape medicine links from IndiaMart
+    st.subheader("Suggested Medicines to Buy (India)")
+    medicines = scrape_medicines_from_indiamart(predicted_class_name)
 
+    for med in medicines:
+        if 'error' in med:
+            st.write(med['error'])
+        else:
+            st.markdown(f"**{med['product']}**")
+            st.markdown(f"[Buy Now]({med['link']})")
+            if med['image']:
+                st.image(med['image'], width=200)
+#################################
     # Showing the generated description and prevention
     if response.text:
         st.subheader("Description and Prevention")
