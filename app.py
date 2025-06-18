@@ -46,7 +46,7 @@ if uploaded_file is not None:
     st.write(f"Predicted Disease: {predicted_class_name}")
 
     # Using Gemini AI to generate description and prevention content
-    prompt = f"Write a detailed description and prevention method for the disease {predicted_class_name} in plants. And also give me a link of medicines for {predicted_class_name} to buy in india. Dont give disclaimer"
+    prompt = f"Write a detailed description and prevention method for the disease {predicted_class_name} in plants. List medicines or treatments sold in India for {predicted_class_name} and include known websites or marketplaces if possible"
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
 
