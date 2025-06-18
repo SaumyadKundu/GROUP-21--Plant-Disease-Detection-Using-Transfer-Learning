@@ -24,37 +24,34 @@ with open(class_names_path, 'r') as f:
     class_names = json.load(f)
     
 #####################################
-def scrape_medicines_from_bighaat(disease_name, max_results=3):
+def fetch_medicines_google(disease_name, site="bighaat.com", max_results=3):
     import requests
     from bs4 import BeautifulSoup
 
-    search_url = f"https://www.bighaat.com/search?q={disease_name}+fungicide"
+    query = f"{disease_name} fungicide site:{site}"
     headers = {"User-Agent": "Mozilla/5.0"}
+    search_url = f"https://www.google.com/search?q={query}"
 
     res = requests.get(search_url, headers=headers)
     if res.status_code != 200:
-        return [{"error": "Failed to fetch search results from BigHaat"}]
+        return [{"error": f"Failed to fetch Google search results for {site}"}]
 
     soup = BeautifulSoup(res.text, "html.parser")
     results = []
 
-    products = soup.find_all("div", class_="product-card", limit=max_results)
-    for product in products:
-        title_tag = product.find("a", class_="product-title")
-        link = "https://www.bighaat.com" + title_tag["href"] if title_tag else None
-        name = title_tag.text.strip() if title_tag else "Unknown Product"
-
-        image_tag = product.find("img")
-        image_url = image_tag["src"] if image_tag else None
-
-        if link and name:
+    for g in soup.find_all('a'):
+        href = g.get('href')
+        if href and site in href and "/url?q=" in href:
+            url = href.split("/url?q=")[-1].split("&")[0]
+            title = g.text.strip() or "Fungicide Product"
             results.append({
-                "product": name,
-                "link": link,
-                "image": image_url
+                "product": title,
+                "link": url
             })
+        if len(results) >= max_results:
+            break
 
-    return results if results else [{"error": "No medicines found on BigHaat"}]
+    return results if results else [{"error": f"No medicine results found on {site}"}]
 
 
 #################################
@@ -89,8 +86,14 @@ if uploaded_file is not None:
     response = model.generate_content(prompt)
 #############################
         # Scrape medicine links from IndiaMart
-    st.subheader("Suggested Medicines to Buy (via BigHaat)")
-medicines = scrape_medicines_from_bighaat(predicted_class_name)
+    st.subheader("Medicines from BigHaat or Amazon")
+
+# Try BigHaat first
+medicines = fetch_medicines_google(predicted_class_name, site="bighaat.com")
+
+# If BigHaat fails, try Amazon
+if medicines and "error" in medicines[0]:
+    medicines = fetch_medicines_google(predicted_class_name, site="amazon.in")
 
 for med in medicines:
     if 'error' in med:
@@ -98,8 +101,7 @@ for med in medicines:
     else:
         st.markdown(f"🔹 **{med['product']}**")
         st.markdown(f"[🛒 Buy Now]({med['link']})")
-        if med['image']:
-            st.image(med['image'], width=200)
+
 
 
 #################################
