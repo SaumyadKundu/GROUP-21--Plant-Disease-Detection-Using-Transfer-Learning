@@ -24,45 +24,45 @@ with open(class_names_path, 'r') as f:
     class_names = json.load(f)
     
 #####################################
-def fetch_medicines_google(disease_name, site="bighaat.com", max_results=3):
+def fetch_medicines_agribegri(disease_name, max_results=3):
     import requests
     from bs4 import BeautifulSoup
 
-    query = f"{disease_name} fungicide site:{site}"
+    query = f"{disease_name} fungicide site:agribegri.com"
     headers = {"User-Agent": "Mozilla/5.0"}
     search_url = f"https://www.google.com/search?q={query}"
 
     res = requests.get(search_url, headers=headers)
     if res.status_code != 200:
-        return [{"error": f"Failed to fetch Google search results for {site}"}]
+        return [{"error": "Failed to fetch search results from Google"}]
 
     soup = BeautifulSoup(res.text, "html.parser")
     results = []
 
     for tag in soup.find_all("a"):
         href = tag.get("href", "")
-        if site in href and "/url?q=" in href:
-            # Extract clean URL
+        if "agribegri.com" in href and "/url?q=" in href:
+            # Clean the Google redirect URL
             url = href.split("/url?q=")[1].split("&")[0]
 
-            # Skip login or sign-in pages
-            if any(skip in url.lower() for skip in ["login", "signin", "account"]):
+            # Filter out non-product pages
+            if any(skip in url.lower() for skip in ["login", "account", "terms"]):
                 continue
 
-            # Try to use snippet text or fallback title
-            product_title = tag.text.strip()
-            if not product_title or len(product_title) < 10:
-                product_title = f"{disease_name} treatment"
+            title = tag.text.strip()
+            if not title or len(title) < 8:
+                title = f"{disease_name} Treatment Product"
 
             results.append({
-                "product": product_title,
+                "product": title,
                 "link": url
             })
 
         if len(results) >= max_results:
             break
 
-    return results if results else [{"error": f"No usable products found on {site}"}]
+    return results if results else [{"error": "No relevant results found on AgriBegri"}]
+
 
 
 #################################
@@ -97,21 +97,16 @@ if uploaded_file is not None:
     response = model.generate_content(prompt)
 #############################
         # Scrape medicine links from IndiaMart
-    st.subheader("Medicines from BigHaat or Amazon")
-
-# Try BigHaat first
-medicines = fetch_medicines_google(predicted_class_name, site="bighaat.com")
-
-# If BigHaat fails, try Amazon
-if medicines and "error" in medicines[0]:
-    medicines = fetch_medicines_google(predicted_class_name, site="amazon.in")
+    st.subheader("Medicines from AgriBegri (India)")
+medicines = fetch_medicines_agribegri(predicted_class_name)
 
 for med in medicines:
     if 'error' in med:
-        st.write(med['error'])
+        st.warning(med['error'])
     else:
         st.markdown(f"🔹 **{med['product']}**")
         st.markdown(f"[🛒 Buy Now]({med['link']})")
+
 
 
 
