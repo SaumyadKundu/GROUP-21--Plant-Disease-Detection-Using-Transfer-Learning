@@ -39,19 +39,30 @@ def fetch_medicines_google(disease_name, site="bighaat.com", max_results=3):
     soup = BeautifulSoup(res.text, "html.parser")
     results = []
 
-    for g in soup.find_all('a'):
-        href = g.get('href')
-        if href and site in href and "/url?q=" in href:
-            url = href.split("/url?q=")[-1].split("&")[0]
-            title = g.text.strip() or "Fungicide Product"
+    for tag in soup.find_all("a"):
+        href = tag.get("href", "")
+        if site in href and "/url?q=" in href:
+            # Extract clean URL
+            url = href.split("/url?q=")[1].split("&")[0]
+
+            # Skip login or sign-in pages
+            if any(skip in url.lower() for skip in ["login", "signin", "account"]):
+                continue
+
+            # Try to use snippet text or fallback title
+            product_title = tag.text.strip()
+            if not product_title or len(product_title) < 10:
+                product_title = f"{disease_name} treatment"
+
             results.append({
-                "product": title,
+                "product": product_title,
                 "link": url
             })
+
         if len(results) >= max_results:
             break
 
-    return results if results else [{"error": f"No medicine results found on {site}"}]
+    return results if results else [{"error": f"No usable products found on {site}"}]
 
 
 #################################
