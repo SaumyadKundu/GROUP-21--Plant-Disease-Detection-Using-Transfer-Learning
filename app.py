@@ -25,9 +25,12 @@ with open(class_names_path, 'r') as f:
     
 #####################################
 def scrape_medicines_from_indiamart(disease_name, max_results=3):
+    import requests
+    from bs4 import BeautifulSoup
+
     query = f"{disease_name} fungicide site:indiamart.com"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        "User-Agent": "Mozilla/5.0"
     }
 
     search_url = f"https://www.google.com/search?q={query}"
@@ -39,8 +42,8 @@ def scrape_medicines_from_indiamart(disease_name, max_results=3):
     soup = BeautifulSoup(res.text, "html.parser")
 
     links = []
-    for g in soup.find_all("a"):
-        href = g.get("href")
+    for a in soup.find_all("a"):
+        href = a.get("href")
         if href and "indiamart.com" in href:
             clean_url = href.split("&")[0].replace("/url?q=", "")
             if clean_url not in links:
@@ -54,18 +57,15 @@ def scrape_medicines_from_indiamart(disease_name, max_results=3):
             page = requests.get(link, headers=headers)
             psoup = BeautifulSoup(page.text, "html.parser")
             title = psoup.find("title").text.strip()
-            img_tag = psoup.find("img")
-            img_url = img_tag["src"] if img_tag else None
-
             results.append({
                 "product": title,
-                "link": link,
-                "image": img_url
+                "link": link
             })
-        except Exception as e:
+        except:
             continue
 
     return results if results else [{"error": "No products found"}]
+
 #################################
 
 # Streamlit app interface
@@ -99,16 +99,15 @@ if uploaded_file is not None:
 #############################
         # Scrape medicine links from IndiaMart
     st.subheader("Suggested Medicines to Buy (India)")
-    medicines = scrape_medicines_from_indiamart(predicted_class_name)
+medicines = scrape_medicines_from_indiamart(predicted_class_name)
 
-    for med in medicines:
-        if 'error' in med:
-            st.write(med['error'])
-        else:
-            st.markdown(f"**{med['product']}**")
-            st.markdown(f"[Buy Now]({med['link']})")
-            if med['image']:
-                st.image(med['image'], width=200)
+for med in medicines:
+    if 'error' in med:
+        st.write(med['error'])
+    else:
+        st.markdown(f"🔹 **{med['product']}**  
+        [🔗 View on IndiaMart]({med['link']})")
+
 #################################
     # Showing the generated description and prevention
     if response.text:
