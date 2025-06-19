@@ -83,7 +83,7 @@ if uploaded_file:
                     keyword="agro shop"
                 )
 
-                Build folium map
+                # Build folium map
                 map_obj = folium.Map(location=[lat, lon], zoom_start=13)
                 folium.Marker(
                     [lat, lon], popup="Your Location", icon=folium.Icon(color="blue")
