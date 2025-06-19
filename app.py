@@ -68,7 +68,7 @@ if uploaded_file:
             gemini_text = response.text or "❌ No info found."
 
             # Geocode location
-            map_display = False  # <-- Add this
+            
             geocode_result = gmaps.geocode(user_location)
             if not geocode_result:
                 map_display = False
@@ -83,48 +83,26 @@ if uploaded_file:
                     keyword="agro shop"
                 )
 
-                # Build folium map
-                # map_obj = folium.Map(location=[lat, lon], zoom_start=13)
-                # folium.Marker(
-                #     [lat, lon], popup="Your Location", icon=folium.Icon(color="blue")
-                # ).add_to(map_obj)
-
-                # for place in places["results"]:
-                #     name = place["name"]
-                #     address = place.get("vicinity", "Address not available")
-                #     plat = place["geometry"]["location"]["lat"]
-                #     plon = place["geometry"]["location"]["lng"]
-                #     folium.Marker(
-                #         [plat, plon],
-                #         popup=f"{name}\n{address}",
-                #         icon=folium.Icon(color="green", icon="leaf")
-                #     ).add_to(map_obj)
-                # map_display = True
-
-                # Build folium map
+                Build folium map
                 map_obj = folium.Map(location=[lat, lon], zoom_start=13)
-                
-                # Add user location marker
                 folium.Marker(
-                    [lat, lon],
-                    popup="Your Location",
-                    tooltip="📍 You are here",
-                    icon=folium.Icon(color="blue")
+                    [lat, lon], popup="Your Location", icon=folium.Icon(color="blue")
                 ).add_to(map_obj)
-                
-                # Add agro store markers with hover + click
+
                 for place in places["results"]:
                     name = place["name"]
                     address = place.get("vicinity", "Address not available")
                     plat = place["geometry"]["location"]["lat"]
                     plon = place["geometry"]["location"]["lng"]
-                
                     folium.Marker(
                         [plat, plon],
-                        popup=folium.Popup(f"<b>{name}</b><br>{address}", max_width=250),
-                        tooltip=folium.Tooltip(name, sticky=True),
+                        popup=f"{name}\n{address}",
                         icon=folium.Icon(color="green", icon="leaf")
                     ).add_to(map_obj)
+                map_display = True
+
+                
+                
 
 
             # SerpAPI medicine links
