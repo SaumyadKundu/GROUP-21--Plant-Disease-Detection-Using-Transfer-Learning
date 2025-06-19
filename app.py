@@ -15,11 +15,11 @@ GEMINI_API_KEY = st.secrets["APIKEY"]
 SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
 GOOGLE_MAPS_KEY = st.secrets["GOOGLE_MAPS_KEY"]
 
-# --- Configure APIs ---
+# --- Configuring APIs ---
 genai.configure(api_key=GEMINI_API_KEY)
 gmaps = googlemaps.Client(key=GOOGLE_MAPS_KEY)
 
-# --- Load model and classes ---
+# --- Loading model and classes ---
 model = load_model('Mymodel.h5')
 with open('class_names.json', 'r') as f:
     class_names = json.load(f)
@@ -28,13 +28,13 @@ with open('class_names.json', 'r') as f:
 st.set_page_config(page_title="🌿 AgriCure", layout="wide")
 st.markdown("<h1 style='text-align: center;'>🌱 AgriCure</h1>", unsafe_allow_html=True)
 
-# --- Upload image ---
+# --- Uploading image ---
 uploaded_file = st.file_uploader("📤 Upload a plant leaf image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     st.markdown("### 📷 Uploaded Image Preview", unsafe_allow_html=True)
 
-    # Center image preview
+    # Centering image preview
     encoded_img = base64.b64encode(uploaded_file.read()).decode()
     st.markdown(
         f"<div style='text-align:center'><img src='data:image/jpeg;base64,{encoded_img}' style='max-width:350px;border-radius:10px;'></div>",
@@ -127,7 +127,7 @@ if uploaded_file:
             except:
                 serp_links = []
 
-        # --- Display Output ---
+        # --- Displaying Output ---
         st.markdown("---")
         st.markdown(
             f"<div style='text-align:center'><h2>✅ Predicted Disease: {clean_name}</h2></div>",
