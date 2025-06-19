@@ -158,7 +158,7 @@ if uploaded_file:
             st.subheader("🗺️ Nearby Agro Stores")
             if map_display:
                 # Lower height to reduce space
-                _ = st_folium(map_obj, width=330, height=280, returned_objects=[])
+                _ = st_folium(map_obj, width=330, height=500, returned_objects=[])
             else:
                 st.warning("⚠️ Map unavailable for the given location.")
         
