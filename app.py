@@ -54,7 +54,7 @@ if uploaded_file:
 
     # SerpAPI result
     with st.spinner("🔎 Searching for real products online..."):
-        query = f"{predicted_class} fungicide"
+        query = f"{predicted_class} medicine buy online"
 
         params = {
         "engine": "google",
