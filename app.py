@@ -91,7 +91,66 @@ if uploaded_file:
                 st.warning("⚠️ No relevant products found online.")
 
     st.markdown("---")
+######################
 
+import googlemaps
+import folium
+from streamlit_folium import st_folium
+
+# --- Section Title ---
+st.subheader("📍 Find Nearby Agro Shops or Krishi Centers")
+
+# Input from user (city or pincode)
+user_location = st.text_input("Enter your location (city, pincode, or area)", "Kolkata")
+
+if st.button("🔍 Search Nearby Agro Shops"):
+    with st.spinner("Fetching nearby stores using Google Places API..."):
+        try:
+            # Initialize Google Maps client
+            gmaps = googlemaps.Client(key=st.secrets["GOOGLE_MAPS_KEY"])
+
+            # Get latitude and longitude from address
+            geocode_result = gmaps.geocode(user_location)
+            if not geocode_result:
+                st.error("❌ Could not find location. Try a valid city or pin code.")
+            else:
+                lat = geocode_result[0]["geometry"]["location"]["lat"]
+                lon = geocode_result[0]["geometry"]["location"]["lng"]
+
+                # Get nearby agro shops
+                places = gmaps.places_nearby(
+                    location=(lat, lon),
+                    radius=5000,
+                    keyword="agro shop"
+                )
+
+                # Create map
+                map_obj = folium.Map(location=[lat, lon], zoom_start=13)
+                folium.Marker(
+                    [lat, lon], popup="Your Location", icon=folium.Icon(color="blue")
+                ).add_to(map_obj)
+
+                found = False
+                for place in places["results"]:
+                    name = place["name"]
+                    address = place.get("vicinity", "No address")
+                    lat_p = place["geometry"]["location"]["lat"]
+                    lon_p = place["geometry"]["location"]["lng"]
+                    folium.Marker(
+                        [lat_p, lon_p],
+                        popup=f"{name}\n{address}",
+                        icon=folium.Icon(color="green", icon="leaf")
+                    ).add_to(map_obj)
+                    found = True
+
+                if found:
+                    st.success("✅ Found agro shops nearby.")
+                    st_folium(map_obj, width=700, height=500)
+                else:
+                    st.warning("⚠️ No agro shops found nearby.")
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
+#####################
 # Footer
 st.markdown(
     "<p style='text-align: center; font-size: 13px; color: gray;'>Made with ❤️ for Indian Farmers | AgriCure 2025</p>",
