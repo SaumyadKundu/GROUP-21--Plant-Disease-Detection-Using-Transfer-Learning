@@ -27,6 +27,8 @@ with open('class_names.json', 'r') as f:
 # --- Streamlit Page Setup ---
 st.set_page_config(page_title="🌿 AgriCure", layout="wide")
 st.markdown("<h1 style='text-align: center;'>🌱 AgriCure</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px; color: grey;'>Smart plant care — diagnose diseases, get remedies, and locate nearby solutions.</p>", unsafe_allow_html=True)
+
 
 # --- Uploading image ---
 uploaded_file = st.file_uploader("📤 Upload a plant leaf image", type=["jpg", "jpeg", "png"])
