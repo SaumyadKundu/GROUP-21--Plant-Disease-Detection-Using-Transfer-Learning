@@ -3,3 +3,6 @@ google-generativeai
 numpy
 beautifulsoup4
 requests
+google-generativeai
+serpapi
+pillow
