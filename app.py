@@ -28,7 +28,7 @@ st.markdown("---")
 uploaded_file = st.file_uploader("📤 Upload a clear image of the affected plant leaf", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    st.image(uploaded_file, use_container_width=True, caption="📷 Uploaded Leaf Image")
+    st.image(uploaded_file, width=350, caption="📷 Uploaded Leaf Image")
     st.markdown("---")
 
     with st.spinner("🔍 Analyzing the image to predict disease..."):
