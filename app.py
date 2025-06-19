@@ -153,7 +153,7 @@ if uploaded_file:
                 else:
                     st.warning("No product results found online.")
 
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            
             
             st.subheader("🗺️ Nearby Agro Stores")
             if map_display:
