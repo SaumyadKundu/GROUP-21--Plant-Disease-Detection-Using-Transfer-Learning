@@ -130,7 +130,7 @@ if uploaded_file:
         # --- Display Output ---
         st.markdown("---")
         st.markdown(
-            f"<div style='text-align:center'><h2>✅ Predicted Disease: {clean_name}</h2><p>🧪 Model Confidence: {confidence:.2f}%</p></div>",
+            f"<div style='text-align:center'><h2>✅ Predicted Disease: {clean_name}</h2></div>",
             unsafe_allow_html=True
         )
 
@@ -141,6 +141,15 @@ if uploaded_file:
             st.subheader("📖 Disease Info & Prevention")
             st.markdown(gemini_text)
 
+            
+
+        with right_col:
+            st.subheader("🗺️ Nearby Agro Stores")
+            if map_display:
+                _ = st_folium(map_obj, width=350, height=500, returned_objects=[])  # No reruns on click
+            else:
+                st.warning("⚠️ Map unavailable for the given location.")
+            
             st.subheader("🛒 Purchase Treatments Online")
             if serp_links:
                 for item in serp_links:
@@ -149,10 +158,3 @@ if uploaded_file:
                     st.markdown(f"🔗 **[{title}]({link})**")
             else:
                 st.warning("No product results found online.")
-
-        with right_col:
-            st.subheader("🗺️ Nearby Agro Stores")
-            if map_display:
-                _ = st_folium(map_obj, width=350, height=500, returned_objects=[])  # No reruns on click
-            else:
-                st.warning("⚠️ Map unavailable for the given location.")
