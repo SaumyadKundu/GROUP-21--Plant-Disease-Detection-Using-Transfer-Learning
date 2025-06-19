@@ -139,6 +139,7 @@ if uploaded_file:
                 st_folium(map_obj, width=350, height=500)
             else:
                 st.warning("⚠️ Map unavailable for given location.")
+            
             st.subheader("🛒 Purchase Treatments Online")
             if serp_links:
                 for item in serp_links:
