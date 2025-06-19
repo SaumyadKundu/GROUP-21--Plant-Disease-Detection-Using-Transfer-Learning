@@ -20,8 +20,8 @@ with open('class_names.json', 'r') as f:
     class_names = json.load(f)
 
 # Streamlit UI
-st.set_page_config(page_title="PhytoScan", layout="centered")
-st.title('🌿 PhytoScan - Plant Disease Identifier & Assistant')
+st.set_page_config(page_title="AgriCure", layout="centered")
+st.title('🌿 AgriCure')
 
 uploaded_file = st.file_uploader("Upload a plant leaf image", type=["jpg", "jpeg", "png"])
 
