@@ -56,13 +56,13 @@ if uploaded_file:
     with st.spinner("🔎 Searching for real products online..."):
         query = f"{predicted_class} fungicide"
 
-params = {
-    "engine": "google",
-    "q": query,
-    "api_key": st.secrets["SERPAPI_KEY"],
-    "gl": "in",
-    "hl": "en",
-    "num": "10"
+        params = {
+        "engine": "google",
+        "q": query,
+        "api_key": st.secrets["SERPAPI_KEY"],
+        "gl": "in",
+        "hl": "en",
+        "num": "10"
 }
 
         search_res = requests.get("https://serpapi.com/search", params=params)
