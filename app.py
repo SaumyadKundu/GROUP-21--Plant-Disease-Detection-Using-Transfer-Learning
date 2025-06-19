@@ -146,11 +146,11 @@ if uploaded_file:
         with right_col:
             st.subheader("🗺️ Nearby Agro Stores")
             if map_display:
-                _ = st_folium(map_obj, width=350, height=500, returned_objects=[])  # No reruns on click
+                _ = st_folium(map_obj, width=350, height=300, returned_objects=[])  # No reruns on click
             else:
                 st.warning("⚠️ Map unavailable for the given location.")
             
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            
 
             st.subheader("🛒 Purchase Treatments Online")
             if serp_links:
