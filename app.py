@@ -40,7 +40,17 @@ if uploaded_file:
         predicted_index = np.argmax(prediction, axis=1)[0]
         predicted_class = class_names[predicted_index]
 
-        st.success(f"✅ **Predicted Disease:** {predicted_class}")
+        clean_name = predicted_class.replace("_", " ").title()
+
+        # Display nicely
+        st.markdown(
+            f"""
+            <div style='text-align: center; margin-top: 20px;'>
+                <span style='font-size: 28px;'>✅ <strong>Predicted Disease:</strong> {clean_name}</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         st.markdown("---")
 
     # Creating two-column layout
