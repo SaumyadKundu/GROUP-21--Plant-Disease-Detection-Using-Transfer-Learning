@@ -1,8 +1,5 @@
 ﻿tensorflow
 google-generativeai
 numpy
-beautifulsoup4
 requests
-google-generativeai
 pillow
-requests
