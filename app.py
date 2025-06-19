@@ -150,6 +150,8 @@ if uploaded_file:
             else:
                 st.warning("⚠️ Map unavailable for the given location.")
             
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
             st.subheader("🛒 Purchase Treatments Online")
             if serp_links:
                 for item in serp_links:
