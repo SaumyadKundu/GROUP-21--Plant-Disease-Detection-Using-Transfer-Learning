@@ -24,20 +24,18 @@ st.markdown("<h1 style='text-align: center; color: green;'>🌱 AgriCure</h1>", 
 st.markdown("<p style='text-align: center;'>Detect plant diseases using AI and find treatment solutions instantly.</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# File upload section
+# Upload image
 uploaded_file = st.file_uploader("📤 Upload a clear image of the affected plant leaf", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
-    st.image(uploaded_file, use_container_width=True, caption="📷 Uploaded Leaf Image")
+    st.image(uploaded_file, use_column_width=True, caption="📷 Uploaded Leaf Image")
     st.markdown("---")
 
     with st.spinner("🔍 Analyzing the image to predict disease..."):
-        # Preprocess image
         img = image.load_img(uploaded_file, target_size=(224, 224))
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0) / 255.0
 
-        # Predict
         prediction = model.predict(img_array)
         predicted_index = np.argmax(prediction, axis=1)[0]
         predicted_class = class_names[predicted_index]
@@ -45,41 +43,44 @@ if uploaded_file:
         st.success(f"✅ **Predicted Disease:** {predicted_class}")
         st.markdown("---")
 
-    # Gemini-generated content
-    with st.spinner("📚 Fetching expert description and prevention steps..."):
-        prompt = f"""
-        You are an expert in agriculture. Write a clear, simple description of the disease '{predicted_class}' in plants. 
-        Include causes, symptoms, prevention methods, and commonly used treatments or medicines in India.
-        """
-        gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-        response = gemini_model.generate_content(prompt)
+    # Create two-column layout
+    left_col, right_col = st.columns([2, 1])  # 2:1 width ratio
 
-        st.subheader("🧾 Disease Information & Prevention Tips")
-        st.markdown(response.text if response.text else "❌ No information found.")
-        st.markdown("---")
+    with left_col:
+        with st.spinner("📚 Fetching expert description and prevention steps..."):
+            prompt = f"""
+            You are an expert in agriculture. Write a clear, simple description of the disease '{predicted_class}' in plants. 
+            Include causes, symptoms, prevention methods, and commonly used treatments or medicines in India.
+            """
+            gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+            response = gemini_model.generate_content(prompt)
 
-    # Product search via SerpAPI
-    with st.spinner("🛒 Looking up available treatments online..."):
-        query = f"{predicted_class} medicine buy online"
-        params = {
-            "engine": "google",
-            "q": query,
-            "api_key": SERPAPI_KEY,
-            "gl": "in",
-            "hl": "en",
-            "num": "10"
-        }
+            st.subheader("📖 Disease Information & Prevention Tips")
+            st.markdown(response.text if response.text else "❌ No information found.")
 
-        search_res = requests.get("https://serpapi.com/search", params=params)
-        results = search_res.json()
+    with right_col:
+        with st.spinner("🛒 Looking up available treatments online..."):
+            query = f"{predicted_class} medicine buy online"
+            params = {
+                "engine": "google",
+                "q": query,
+                "api_key": SERPAPI_KEY,
+                "gl": "in",
+                "hl": "en",
+                "num": "10"
+            }
 
-        st.subheader("🛍️ Purchase Treatments Online")
-        if "organic_results" in results:
-            for item in results["organic_results"]:
-                st.markdown(f"🔗 **[{item['title']}]({item['link']})**")
-        else:
-            st.warning("⚠️ No relevant products found online.")
-        st.markdown("---")
+            search_res = requests.get("https://serpapi.com/search", params=params)
+            results = search_res.json()
+
+            st.subheader("🛍️ Purchase Treatments Online")
+            if "organic_results" in results:
+                for item in results["organic_results"]:
+                    st.markdown(f"🔗 **[{item['title']}]({item['link']})**")
+            else:
+                st.warning("⚠️ No relevant products found online.")
+
+    st.markdown("---")
 
 # Footer
 st.markdown(
