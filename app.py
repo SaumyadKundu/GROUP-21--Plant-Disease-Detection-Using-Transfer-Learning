@@ -120,7 +120,7 @@ if uploaded_file:
         # Output
         st.markdown("---")
         st.markdown(
-            f"<div style='text-align:center'><h2>✅ Predicted Disease: {clean_name}</h2><p>🧪 Model Confidence: {confidence:.2f}%</p></div>",
+            f"<div style='text-align:center'><h2>✅ Predicted Disease: {clean_name}</h2></div>",
             unsafe_allow_html=True
         )
 
