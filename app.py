@@ -10,44 +10,45 @@ import folium
 from streamlit_folium import st_folium
 import requests
 
-# Load secrets
+# --- API Keys ---
 GEMINI_API_KEY = st.secrets["APIKEY"]
 SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
 GOOGLE_MAPS_KEY = st.secrets["GOOGLE_MAPS_KEY"]
 
-# Configure APIs
+# --- Configure APIs ---
 genai.configure(api_key=GEMINI_API_KEY)
 gmaps = googlemaps.Client(key=GOOGLE_MAPS_KEY)
 
-# Load model and class names
+# --- Load model and classes ---
 model = load_model('Mymodel.h5')
 with open('class_names.json', 'r') as f:
     class_names = json.load(f)
 
-# Page setup
+# --- Streamlit Page Setup ---
 st.set_page_config(page_title="🌿 AgriCure", layout="wide")
 st.markdown("<h1 style='text-align: center;'>🌱 AgriCure</h1>", unsafe_allow_html=True)
 
-# File uploader
+# --- Upload image ---
 uploaded_file = st.file_uploader("📤 Upload a plant leaf image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     st.markdown("### 📷 Uploaded Image Preview", unsafe_allow_html=True)
 
-    # Show uploaded image (centered)
+    # Center image preview
     encoded_img = base64.b64encode(uploaded_file.read()).decode()
     st.markdown(
         f"<div style='text-align:center'><img src='data:image/jpeg;base64,{encoded_img}' style='max-width:350px;border-radius:10px;'></div>",
         unsafe_allow_html=True
     )
 
-    # Location input
+    # --- User location input ---
     user_location = st.text_input("📍 Enter your city, area, or pincode to find nearby agro stores:", "Kolkata")
 
     if user_location:
         with st.spinner("🤖 Predicting disease and fetching data..."):
-            # Predict disease
-            uploaded_file.seek(0)  # reset file
+
+            # --- Prediction ---
+            uploaded_file.seek(0)
             img = image.load_img(uploaded_file, target_size=(224, 224))
             img_array = image.img_to_array(img)
             img_array = np.expand_dims(img_array, axis=0) / 255.0
@@ -58,7 +59,7 @@ if uploaded_file:
             clean_name = predicted_class.replace("_", " ").title()
             confidence = np.max(prediction) * 100
 
-            # Gemini response
+            # --- Gemini Description ---
             gemini_model = genai.GenerativeModel("gemini-1.5-flash")
             prompt = f"""
             You are an agriculture expert. Explain the plant disease '{clean_name}' in simple terms.
@@ -67,40 +68,49 @@ if uploaded_file:
             response = gemini_model.generate_content(prompt)
             gemini_text = response.text or "❌ No info found."
 
-            # Geocode location
-            geocode_result = gmaps.geocode(user_location)
-            if not geocode_result:
-                map_display = False
-            else:
-                lat = geocode_result[0]["geometry"]["location"]["lat"]
-                lon = geocode_result[0]["geometry"]["location"]["lng"]
+            # --- Google Maps Nearby Shops ---
+            map_display = False
+            try:
+                geocode_result = gmaps.geocode(user_location)
+                if geocode_result:
+                    lat = geocode_result[0]["geometry"]["location"]["lat"]
+                    lon = geocode_result[0]["geometry"]["location"]["lng"]
 
-                # Fetch nearby agro shops
-                places = gmaps.places_nearby(
-                    location=(lat, lon),
-                    radius=5000,
-                    keyword="agro shop"
-                )
+                    places = gmaps.places_nearby(
+                        location=(lat, lon),
+                        radius=5000,
+                        keyword="agro shop"
+                    )
 
-                # Build folium map
-                map_obj = folium.Map(location=[lat, lon], zoom_start=13)
-                folium.Marker(
-                    [lat, lon], popup="Your Location", icon=folium.Icon(color="blue")
-                ).add_to(map_obj)
+                    map_obj = folium.Map(location=[lat, lon], zoom_start=13)
 
-                for place in places["results"]:
-                    name = place["name"]
-                    address = place.get("vicinity", "Address not available")
-                    plat = place["geometry"]["location"]["lat"]
-                    plon = place["geometry"]["location"]["lng"]
+                    # User location marker
                     folium.Marker(
-                        [plat, plon],
-                        popup=f"{name}\n{address}",
-                        icon=folium.Icon(color="green", icon="leaf")
+                        [lat, lon],
+                        popup="Your Location",
+                        tooltip="📍 You are here",
+                        icon=folium.Icon(color="blue")
                     ).add_to(map_obj)
-                map_display = True
 
-            # SerpAPI medicine links
+                    for place in places["results"]:
+                        name = place["name"]
+                        address = place.get("vicinity", "Address not available")
+                        plat = place["geometry"]["location"]["lat"]
+                        plon = place["geometry"]["location"]["lng"]
+
+                        folium.Marker(
+                            [plat, plon],
+                            popup=folium.Popup(f"<b>{name}</b><br>{address}", max_width=250),
+                            tooltip=folium.Tooltip(name, sticky=True),
+                            icon=folium.Icon(color="green", icon="leaf")
+                        ).add_to(map_obj)
+
+                    map_display = True
+            except:
+                map_display = False
+
+            # --- SerpAPI Product Links ---
+            serp_links = []
             try:
                 query = f"{clean_name} plant disease medicine buy online"
                 params = {
@@ -117,29 +127,20 @@ if uploaded_file:
             except:
                 serp_links = []
 
-        # Output
+        # --- Display Output ---
         st.markdown("---")
         st.markdown(
             f"<div style='text-align:center'><h2>✅ Predicted Disease: {clean_name}</h2><p>🧪 Model Confidence: {confidence:.2f}%</p></div>",
             unsafe_allow_html=True
         )
 
-        # Layout: left (Gemini + Serp), right (Map)
+        # --- Two-Column Layout ---
         left_col, right_col = st.columns([2, 1])
 
         with left_col:
             st.subheader("📖 Disease Info & Prevention")
             st.markdown(gemini_text)
 
-            
-
-        with right_col:
-            st.subheader("🗺️ Nearby Agro Stores")
-            if map_display:
-                st_folium(map_obj, width=350, height=500)
-            else:
-                st.warning("⚠️ Map unavailable for given location.")
-            
             st.subheader("🛒 Purchase Treatments Online")
             if serp_links:
                 for item in serp_links:
@@ -148,3 +149,10 @@ if uploaded_file:
                     st.markdown(f"🔗 **[{title}]({link})**")
             else:
                 st.warning("No product results found online.")
+
+        with right_col:
+            st.subheader("🗺️ Nearby Agro Stores")
+            if map_display:
+                _ = st_folium(map_obj, width=350, height=500, returned_objects=[])  # No reruns on click
+            else:
+                st.warning("⚠️ Map unavailable for the given location.")
