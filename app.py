@@ -6,14 +6,14 @@ import numpy as np
 import google.generativeai as genai
 import requests
 
-# Access API keys from Streamlit secrets
+# Accessing API keys from Streamlit secrets
 GEMINI_API_KEY = st.secrets["APIKEY"]
 SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
 
-# Configure Gemini
+# Configuring Gemini
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Load model and class names
+# Loading model and class names
 model = load_model('Mymodel.h5')
 with open('class_names.json', 'r') as f:
     class_names = json.load(f)
@@ -24,7 +24,7 @@ st.markdown("<h1 style='text-align: center; color: green;'>🌱 AgriCure</h1>", 
 st.markdown("<p style='text-align: center;'>Detect plant diseases using AI and find treatment solutions instantly.</p>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Upload image
+# Uploading image
 uploaded_file = st.file_uploader("📤 Upload a clear image of the affected plant leaf", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
@@ -43,7 +43,7 @@ if uploaded_file:
         st.success(f"✅ **Predicted Disease:** {predicted_class}")
         st.markdown("---")
 
-    # Create two-column layout
+    # Creating two-column layout
     left_col, right_col = st.columns([2, 1])  # 2:1 width ratio
 
     with left_col:
