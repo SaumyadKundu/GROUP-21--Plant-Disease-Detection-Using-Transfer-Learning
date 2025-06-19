@@ -3,3 +3,6 @@ google-generativeai
 numpy
 requests
 pillow
+googlemaps
+streamlit-folium
+folium
