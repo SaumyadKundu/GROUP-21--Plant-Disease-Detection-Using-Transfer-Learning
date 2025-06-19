@@ -144,6 +144,17 @@ if uploaded_file:
             
 
         with right_col:
+            with st.expander("🛒 Purchase Treatments Online", expanded=True):
+                if serp_links:
+                    for item in serp_links:
+                        title = item.get("title", "")
+                        link = item.get("link", "")
+                        st.markdown(f"🔗 **[{title}]({link})**")
+                else:
+                    st.warning("No product results found online.")
+
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            
             st.subheader("🗺️ Nearby Agro Stores")
             if map_display:
                 # Lower height to reduce space
@@ -154,12 +165,5 @@ if uploaded_file:
             # Optional: slight spacing between map and links
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         
-            # Wrap links in an expander to control layout better
-            with st.expander("🛒 Purchase Treatments Online", expanded=True):
-                if serp_links:
-                    for item in serp_links:
-                        title = item.get("title", "")
-                        link = item.get("link", "")
-                        st.markdown(f"🔗 **[{title}]({link})**")
-                else:
-                    st.warning("No product results found online.")
+         
+            
