@@ -54,14 +54,16 @@ if uploaded_file:
 
     # SerpAPI result
     with st.spinner("🔎 Searching for real products online..."):
-        params = {
-            "engine": "google",
-            "q": f"{predicted_class} fungicide site:agribegri.com OR site:amazon.in OR site:flipkart.com",
-            "api_key": SERPAPI_KEY,
-            "gl": "in",
-            "hl": "en",
-            "num": "5"
-        }
+        query = f"{predicted_class} fungicide"
+
+params = {
+    "engine": "google",
+    "q": query,
+    "api_key": st.secrets["SERPAPI_KEY"],
+    "gl": "in",
+    "hl": "en",
+    "num": "10"
+}
 
         search_res = requests.get("https://serpapi.com/search", params=params)
         results = search_res.json()
