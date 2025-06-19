@@ -68,6 +68,7 @@ if uploaded_file:
             gemini_text = response.text or "❌ No info found."
 
             # Geocode location
+            map_display = False  # <-- Add this
             geocode_result = gmaps.geocode(user_location)
             if not geocode_result:
                 map_display = False
