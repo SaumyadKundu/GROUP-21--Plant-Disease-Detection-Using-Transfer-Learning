@@ -131,6 +131,14 @@ if uploaded_file:
             st.subheader("📖 Disease Info & Prevention")
             st.markdown(gemini_text)
 
+            
+
+        with right_col:
+            st.subheader("🗺️ Nearby Agro Stores")
+            if map_display:
+                st_folium(map_obj, width=350, height=500)
+            else:
+                st.warning("⚠️ Map unavailable for given location.")
             st.subheader("🛒 Purchase Treatments Online")
             if serp_links:
                 for item in serp_links:
@@ -139,10 +147,3 @@ if uploaded_file:
                     st.markdown(f"🔗 **[{title}]({link})**")
             else:
                 st.warning("No product results found online.")
-
-        with right_col:
-            st.subheader("🗺️ Nearby Agro Stores")
-            if map_display:
-                st_folium(map_obj, width=350, height=500)
-            else:
-                st.warning("⚠️ Map unavailable for given location.")
