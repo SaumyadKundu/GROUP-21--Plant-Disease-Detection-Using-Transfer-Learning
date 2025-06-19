@@ -4,7 +4,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import google.generativeai as genai
-from serpapi import GoogleSearch
+from serpapi.google_search import GoogleSearch
 
 # Accessing API keys from Streamlit secrets
 api_key = st.secrets["APIKEY"]
