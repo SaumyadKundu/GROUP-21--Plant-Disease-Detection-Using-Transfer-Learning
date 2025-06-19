@@ -4,70 +4,71 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import google.generativeai as genai
-from serpapi import GoogleSearch
+import requests
 
-# Accessing API keys from Streamlit secrets
-api_key = st.secrets["APIKEY"]
-serpapi_key = st.secrets["SERPAPI_KEY"]
+# Access API keys from Streamlit secrets
+GEMINI_API_KEY = st.secrets["APIKEY"]
+SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
 
-# Configure Gemini AI
-genai.configure(api_key=api_key)
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
 
-# Load model
+# Load model and class names
 model = load_model('Mymodel.h5')
 
-# Load class names
 with open('class_names.json', 'r') as f:
     class_names = json.load(f)
 
 # Streamlit UI
+st.set_page_config(page_title="PhytoScan", layout="centered")
 st.title('🌿 PhytoScan - Plant Disease Identifier & Assistant')
 
-uploaded_file = st.file_uploader("Upload a leaf image...", type=["jpg", "png", "jpeg"])
+uploaded_file = st.file_uploader("Upload a plant leaf image", type=["jpg", "jpeg", "png"])
 
-if uploaded_file is not None:
-    st.image(uploaded_file, use_container_width=True)
+if uploaded_file:
+    st.image(uploaded_file, use_container_width=True, caption="Uploaded Image")
 
-    # Preprocess image
-    img = image.load_img(uploaded_file, target_size=(224, 224))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array /= 255.0
+    with st.spinner("🧠 Predicting disease..."):
+        # Preprocess image
+        img = image.load_img(uploaded_file, target_size=(224, 224))
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array /= 255.0
 
-    # Predict
-    prediction = model.predict(img_array)
-    predicted_class_index = np.argmax(prediction, axis=1)[0]
-    predicted_class_name = class_names[predicted_class_index]
+        # Predict
+        prediction = model.predict(img_array)
+        predicted_index = np.argmax(prediction, axis=1)[0]
+        predicted_class = class_names[predicted_index]
 
-    st.markdown(f"### 🧬 Predicted Disease: **{predicted_class_name}**")
+        st.success(f"✅ Predicted Disease: **{predicted_class}**")
 
-    # Gemini AI for description
-    with st.spinner("Fetching disease info..."):
-        prompt = f"Write a detailed description and prevention method for the disease {predicted_class_name} in plants. List medicines or treatments sold in India."
+    # Gemini response
+    with st.spinner("📚 Fetching description and prevention using AI..."):
+        prompt = f"""You are an expert in agriculture. Write a detailed but simple description of the disease '{predicted_class}' in plants. 
+        Include causes, symptoms, and prevention methods. Mention medicines or treatments available in India if possible."""
+        
         gemini_model = genai.GenerativeModel("gemini-1.5-flash")
         response = gemini_model.generate_content(prompt)
+        st.subheader("📖 Description and Prevention")
+        st.markdown(response.text if response.text else "No description found.")
 
-        if response.text:
-            st.subheader("🧾 Description and Prevention")
-            st.write(response.text)
-
-    # SerpAPI for real product links
-    with st.spinner("Searching for real-world treatments..."):
+    # SerpAPI result
+    with st.spinner("🔎 Searching for real products online..."):
         params = {
             "engine": "google",
-            "q": f"{predicted_class_name} fungicide site:agribegri.com OR site:amazon.in OR site:flipkart.com",
-            "location": "India",
-            "hl": "en",
+            "q": f"{predicted_class} fungicide site:agribegri.com OR site:amazon.in OR site:flipkart.com",
+            "api_key": SERPAPI_KEY,
             "gl": "in",
-            "api_key": serpapi_key
+            "hl": "en",
+            "num": "5"
         }
 
-        search = GoogleSearch(params)
-        results = search.get_dict()
+        search_res = requests.get("https://serpapi.com/search", params=params)
+        results = search_res.json()
 
+        st.subheader("🛒 Available Products (Online Stores)")
         if "organic_results" in results:
-            st.subheader("🛒 Available Products Online")
-            for res in results["organic_results"][:5]:  # show top 5 results
-                st.markdown(f"**{res['title']}**\n\n[{res['link']}]({res['link']})")
+            for item in results["organic_results"]:
+                st.markdown(f"🔗 **{item['title']}**  \n[{item['link']}]({item['link']})")
         else:
-            st.write("Couldn't fetch product links. Try again later.")
+            st.warning("No product results found.")
